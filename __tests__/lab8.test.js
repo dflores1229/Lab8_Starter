@@ -73,9 +73,18 @@ describe('Basic user flow for Website', () => {
 
   // Check to make sure that the cart in localStorage is what you expect
   it('Checking the localStorage to make sure cart is correct', async () => {
+    let correctOutput;
     // TODO - Step 5
-    // At this point he item 'cart' in localStorage should be 
+    // At this point the item 'cart' in localStorage should be 
     // '[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]', check to make sure it is
+    let cart = localStorage.getItem("cart")
+    console.log(cart);
+    if(cart === '[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]'){ 
+      correctOutput = true;
+    }
+
+    // Expect correctOutput to still be true
+    expect(correctOutput).toBe(true);
   });
 
   // Checking to make sure that if you remove all of the items from the cart that the cart
@@ -85,6 +94,14 @@ describe('Basic user flow for Website', () => {
     // TODO - Step 6
     // Go through and click "Remove from Cart" on every single <product-item>, just like above.
     // Once you have, check to make sure that #cart-count is now 0
+
+    // Query select all of the <product-item> elements and return the length of that array
+    const numProducts = await page.$$eval('product-item', (prodItems) => {
+      return prodItems.length;
+    });
+
+    expect(numProducts).tobe(0);
+    
   }, 10000);
 
   // Checking to make sure that it remembers us removing everything from the cart
@@ -95,6 +112,14 @@ describe('Basic user flow for Website', () => {
     // Reload the page once more, then go through each <product-item> to make sure that it has remembered nothing
     // is in the cart - do this by checking the text on the buttons so that they should say "Add to Cart".
     // Also check to make sure that #cart-count is still 0
+
+    // Query select all of the <product-item> elements and return the length of that array
+    const numProducts = await page.$$eval('product-item', (prodItems) => {
+      return prodItems.length;
+    });
+    
+    expect(numProducts).tobe(0);
+
   }, 10000);
 
   // Checking to make sure that localStorage for the cart is as we'd expect for the
@@ -102,6 +127,13 @@ describe('Basic user flow for Website', () => {
   it('Checking the localStorage to make sure cart is correct', async () => {
     console.log('Checking the localStorage...');
     // TODO - Step 8
-    // At this point he item 'cart' in localStorage should be '[]', check to make sure it is
+    // At this point the item 'cart' in localStorage should be '[]', check to make sure it is
+
+    let cart = localStorage.getItem('cart')
+    console.log(cart);
+    if(cart === '[]'){ correctOutput = true;}
+
+    // Expect correctOutput to still be true
+    expect(correctOutput).toBe(true);
   });
 });
