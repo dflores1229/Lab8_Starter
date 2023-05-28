@@ -161,12 +161,34 @@ describe("Basic user flow for Website", () => {
     // Go through and click "Remove from Cart" on every single <product-item>, just like above.
     // Once you have, check to make sure that #cart-count is now 0
 
-    // Query select all of the <product-item> elements and return the length of that array
-    const numProducts = await page.$$eval("product-item", (prodItems) => {
-      return prodItems.length;
-    });
 
-    expect(numProducts).tobe(0);
+    // Query select all of the <product-item> elements, then for every single product element
+    const prodItems = await page.$$("product-item");
+
+    // get the shadowRoot and query select the button inside, and click on it.
+    // Loop through each <product-item> element
+    for (let i = 0; i < prodItems.length; i++) {
+      // Grab the shadowRoot of that element (it's a property), then query a button from that shadowRoot.
+      const shadowRootHandle = await prodItems[i].getProperty("shadowRoot");
+      // Query the button from the shadowRoot using page.evaluateHandle
+      const button = await page.evaluateHandle(
+        (shadowRoot) => shadowRoot.querySelector("button"),
+        shadowRootHandle
+      );
+      // Click the button
+      await button.click();
+    }
+
+    // Get the innerText property of the #cart-count element
+    const cartCount = await page.$eval(
+      "#cart-count",
+      (element) => element.innerText
+    );
+    
+    // Expect the cart count to be "0"
+    expect(cartCount).toBe("0");
+
+
   }, 10000);
 
   // Checking to make sure that it remembers us removing everything from the cart
@@ -177,13 +199,39 @@ describe("Basic user flow for Website", () => {
     // Reload the page once more, then go through each <product-item> to make sure that it has remembered nothing
     // is in the cart - do this by checking the text on the buttons so that they should say "Add to Cart".
     // Also check to make sure that #cart-count is still 0
+    
+    // Reload the page
+    await page.reload();
+    
+    // Select all of the <product-item> elements
+    const prodItems = await page.$$("product-item");
 
-    // Query select all of the <product-item> elements and return the length of that array
-    const numProducts = await page.$$eval("product-item", (prodItems) => {
-      return prodItems.length;
-    });
+    for(let i = 0; i < prodItems.length; i++){
+      const shadowRootHandle = await prodItems[i].getProperty("shadowRoot");
 
-    expect(numProducts).tobe(0);
+      const button = await page.evaluateHandle(
+        (shadowRoot) => shadowRoot.querySelector("button"),
+        shadowRootHandle
+      );
+      
+      // Get the updated innerText property of the button
+      const buttonText = await page.evaluate(
+        (button) => button.innerText,
+        button
+      );
+      
+      // Expect the button text to be "Add to Cart"
+      expect(buttonText).toBe("Add to Cart");
+    }
+
+    // Get the innerText property of the #cart-count element
+    const cartCount = await page.$eval(
+      "#cart-count",
+      (element) => element.innerText
+    );
+    
+    // Expect the cart count to be "0"
+    expect(cartCount).toBe("0");
   }, 10000);
 
   // Checking to make sure that localStorage for the cart is as we'd expect for the
@@ -192,14 +240,16 @@ describe("Basic user flow for Website", () => {
     console.log("Checking the localStorage...");
     // TODO - Step 8
     // At this point the item 'cart' in localStorage should be '[]', check to make sure it is
+    
+    const cartValue = await page.evaluate(() => {
+      // Retrieve the value of 'cart' from localStorage
+      return localStorage.getItem("cart");
+    });
 
-    let cart = localStorage.getItem("cart");
-    console.log(cart);
-    if (cart === "[]") {
-      correctOutput = true;
-    }
+    const expectedCartValue ="[]";
 
-    // Expect correctOutput to still be true
-    expect(correctOutput).toBe(true);
+    // Use the `expect` function to assert that the cartValue matches the expected value
+    expect(cartValue).toBe(expectedCartValue);
+
   });
 });
